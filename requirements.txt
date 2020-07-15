@@ -1,0 +1,8 @@
+numpy
+scipy
+matplotlib
+pandas
+h5py
+lmfit
+scikit_image
+scikit_learn

@@ -5,7 +5,7 @@ BASE_CVS_URL = 'https://github.com/carmelom/becpy'
 
 setup(
     name='becpy',
-    packages=['becpy', ],
+    packages=['becpy'],
     version=VERSION,
     author='Carmelo Mordini',
     author_email='carmelo.mordini@unitn.it',
