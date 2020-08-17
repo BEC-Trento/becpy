@@ -13,7 +13,7 @@ import h5py
 from .correction import probe_correction_beta
 
 
-def get_od(atoms, probe, dark, alpha, chi_sat, pulsetime, mask=None):
+def get_od(atoms, probe, dark, alpha, chi_sat, pulsetime, mask=None, **kwargs):
     atoms = (atoms - dark).clip(1)
     probe = (probe - dark).clip(1)
 

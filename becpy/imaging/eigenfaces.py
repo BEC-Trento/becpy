@@ -3,8 +3,10 @@
 #
 # Created: 06-2020 - Carmelo Mordini <carmelo> <carmelo.mordini@unitn.it>
 
-"""Module docstring
-
+"""
+!!!! Module under test !!!
+Still developing.
+The Eigenfaces class should work, the incremental version I'm not sure.
 """
 
 import numpy as np
