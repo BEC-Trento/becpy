@@ -11,13 +11,21 @@ import numpy as np
 
 import mpmath as mp  # fast, low precision implementation
 from functools import partial
+from scipy.optimize import brentq
 
 _g12 = partial(mp.fp.polylog, 1 / 2)
 _g32 = partial(mp.fp.polylog, 3 / 2)
 _g52 = partial(mp.fp.polylog, 5 / 2)
 _g3 = partial(mp.fp.polylog, 3)
 
+
+def _g3_inv(z):
+    return brentq(lambda x: g3(x) - z, 0, 1)
+
+
 g12 = np.vectorize(_g12, otypes=[np.float64], doc="polylog(1/2, x). Vectorized by numpy.")
 g32 = np.vectorize(_g32, otypes=[np.float64], doc="polylog(3/2, x). Vectorized by numpy.")
 g52 = np.vectorize(_g52, otypes=[np.float64], doc="polylog(5/2, x). Vectorized by numpy.")
 g3 = np.vectorize(_g3, otypes=[np.float64], doc="Vectorized mp.polylog(3, x).")
+
+g3_inv = np.vectorize(_g3_inv, otypes=[np.float64], doc="Vectorized inverse mp.polylog(3, x).")

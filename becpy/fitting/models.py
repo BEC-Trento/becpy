@@ -34,6 +34,22 @@ class Gaussian2DModel(Model2D):
         return self.make_params(amp=amp, mx=mx, my=my, sx=sx, sy=sy, offset=0, alpha=0)
 
 
+class ThomasFermi2DModel(Model2D):
+    __doc__ = funcs.gaussian2d.__doc__ + \
+        lmfit.models.COMMON_DOC if funcs.thomasfermi2d.__doc__ else ""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            funcs.thomasfermi2d, *args, **kwargs)
+        self.set_param_hint('amp', min=0)
+        self.set_param_hint('ry', min=0)
+        self.set_param_hint('ry', min=0)
+
+    def guess(self, data, **kwargs):
+        amp, mx, my, sx, sy = funcs.guess_from_peak_2d(data, **kwargs)
+        return self.make_params(amp=amp, mx=mx, my=my, rx=sx, ry=sy, offset=0, alpha=0)
+
+
 class BimodalBose2DModel(Model2D):
     __doc__ = funcs.gaussian2d.__doc__ + \
         lmfit.models.COMMON_DOC if funcs.bimodalbose2d.__doc__ else ""
