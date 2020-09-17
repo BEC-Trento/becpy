@@ -1,11 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 VERSION = 'becpy.__version__'
 BASE_CVS_URL = 'https://github.com/carmelom/becpy'
 
 setup(
     name='becpy',
-    packages=['becpy'],
+    packages=find_packages(),
     version=VERSION,
     author='Carmelo Mordini',
     author_email='carmelo.mordini@unitn.it',
