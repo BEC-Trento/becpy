@@ -29,8 +29,10 @@ def loaddataframe(filename):
         return pd.DataFrame()
 
 
-def _loadgroup(filename, group, idx, load_datasets=True):
-    group = f"{group}/{idx:03d}" if idx is not None else group
+# def _loadgroup(filename, group, idx, load_datasets=True):
+#     group = f"{group}/{idx:03d}" if idx is not None else group
+
+def load_data(filename, group, load_datasets=True):
 
     def to_dict(group, data):
         data.update(dict(group.attrs))
@@ -50,8 +52,7 @@ def _loadgroup(filename, group, idx, load_datasets=True):
     return data
 
 
-def loadkeys(filename, group, idx=None):
-    group = f"{group}/{idx:03d}" if idx is not None else group
+def load_keys(filename, group):
     with h5py.File(filename, 'r') as f:
         try:
             group = f[group]
@@ -62,31 +63,32 @@ def loadkeys(filename, group, idx=None):
         return list(group.keys()) + list(group.attrs.keys())
 
 
-def loaddata(filename, group, idx=None, load_datasets=True):
-
-    if idx is not None:
-        return _loadgroup(filename, group, idx, load_datasets)
-
-    with h5py.File(filename, 'r') as f:
-        keys = list(f[group].keys())
-        data = {}
-        # for key in keys:
-        #     data[int(idx)] = dict(f[f"{group}/{idx}"].attrs)
-    for idx in keys:
-        data[int(idx)] = _loadgroup(filename, group, int(idx), load_datasets)
-    return OrderedDict(data)
+# def loaddata(filename, group, idx=None, load_datasets=True):
+#
+#     if idx is not None:
+#         return _loadgroup(filename, group, idx, load_datasets)
+#
+#     with h5py.File(filename, 'r') as f:
+#         keys = list(f[group].keys())
+#         data = {}
+#         # for key in keys:
+#         #     data[int(idx)] = dict(f[f"{group}/{idx}"].attrs)
+#     for idx in keys:
+#         data[int(idx)] = _loadgroup(filename, group, int(idx), load_datasets)
+#     return OrderedDict(data)
 
 
 def _save_dataset(filename, name, value, dtype=None):
     """Delete the dataset before rewriting. h5 is a pain with deleting
     stuff but this approach keeps file size from growing too much.
+    No it doesnt
     """
 
     try:
-        filename.create_dataset(name, data=value, dtype=dtype)
+        filename.create_dataset(name, data=value, maxshape=(None,), dtype=dtype)
     except RuntimeError:
         del filename[name]
-        filename.create_dataset(name, data=value, dtype=dtype)
+        filename.create_dataset(name, data=value, maxshape=(None,), dtype=dtype)
 
 
 def save_data(filename, data, group, idx=None):

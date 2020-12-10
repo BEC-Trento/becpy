@@ -21,6 +21,8 @@ from ..constants import scattering_length as a_scatt, interaction_constant_g as 
 from .hfsolver import solver_harmonic_trap, solver_LDA, physics_solver_mu, physics_solver, integrate_N_harmonic_trap
 from .hfsolver import T_crit as _hf_T_crit, lambda_therm
 
+from . import trapped_hartree_fock as thf
+
 thismodule = sys.modules[__name__]
 
 
@@ -149,6 +151,7 @@ def p_semi_ideal(mu0, T, V):
 
 
 def n_hartree_fock(mu0, T, V, split=False, solver_kwargs={}):
+    "mu0, T: SI units"
     n, n0 = solver_LDA(mu0, T, V)
     if split:
         nt = n - n0
@@ -260,6 +263,8 @@ def get_mu0(N, T, omega_rho, AR, mu0_lims=(-30, 300), density_model='hartree_foc
         dr: spatial res to compute density [default: 2e-6]
         Rmax: max range to compute density [default: 3e-3]
     """
+    if mu0_lims == 'auto':
+        mu0_lims = _thf_mu0_lims(N, T, omega_rho, AR)
     if density_model == 'hartree_fock':
         # kw = {'omega_ho': omega_rho, 'dr': 2e-6, 'Rmax': 3e-3}
         # kw.update(kwargs)
@@ -327,14 +332,14 @@ def get_mu0_HF(N, T, omega_rho, AR, mu0_lims=(-30, 300), **kwargs):
         dr: spatial res to compute density [default: 0.5 um]
         Rmax: max range to compute density [default: 200 um]
     """
-    solver_kw = dict(omega_ho=omega_rho, dr=0.5e-7, Rmax=2e-4)
+    solver_kw = dict(omega_ho=omega_rho, dr=5e-7, Rmax=2e-4)
     solver_kw.update(kwargs)
     mu_upper = mu0_lims[1] * 1e-9 * kB
     fun_n_sim, _, mus, r, _ = solver_harmonic_trap(mu_upper, T, **solver_kw)
     ns = fun_n_sim(mus)
 
     # import matplotlib.pyplot as plt
-    # fig, (ax, ax1) = plt.subplots(2, sharex=True)
+    # fig, (ax, ax1) = plt.subplots(1, 2, sharex=True)
     # ax.plot(r, ns)
     # ax1.plot(r, mus * 1e9 / kB)
     # ax1.axhline(mu0_lims[0])
@@ -345,6 +350,39 @@ def get_mu0_HF(N, T, omega_rho, AR, mu0_lims=(-30, 300), **kwargs):
         where = mus <= mu0
         return AR * integrate_N_harmonic_trap(mu0, omega_rho, ns[where], mus[where]) - N
     return brentq(fun, *mu0_lims)
+
+
+def _lda_bec_fraction(N, T, omega_rho, AR, mu0_lims=(-1000, 300), full_output=False, raise_error=True, **kwargs):
+    if mu0_lims == 'auto':
+        mu0_lims = _thf_mu0_lims(N, T, omega_rho, AR)
+    kw = dict(density_model='hartree_fock', dr=5e-7, Rmax=2e-4)
+    kw.update(**kwargs)
+    try:
+        mu0 = get_mu0(N, T, omega_rho, AR, mu0_lims=mu0_lims, **kw)  # _interp
+        N0, Nt = get_N(kB * mu0 * 1e-9, T, omega_rho, AR, split=True, **kw)
+    except ValueError as e:
+        if raise_error:
+            raise(e)
+        else:
+            print(e)
+            return np.nan
+    if full_output:
+        return N0, Nt, mu0
+    else:
+        return N0 / (N0 + Nt)
+
+
+lda_bec_fraction = np.vectorize(_lda_bec_fraction, excluded={'omega_rho', 'AR', 'mu0_lims', 'density_model'})
+
+
+def _thf_mu0_lims(N, T, omega_rho, AR):
+    omega_ho = omega_rho / AR**(1/3)
+    eta = thf.eta(N, omega_ho)
+    Tc = thf.critical_temperature(N, omega_ho)
+    mu0 = thf.__mu_t(T / Tc, eta) * Tc * 1e9  # nK
+    lims = (mu0 * 0.5, mu0 * 2) if mu0 >= 0 else (mu0 * 2, mu0 * 0.5)
+    # print(f"estimate mu0 = {mu0:.3f} nK -- lims: ({lims[0]:.2f}, {lims[1]:.2f})")
+    return lims
 
 
 def plot_pressure_data(ax, mu0, T, p, V, *args, **kwargs):

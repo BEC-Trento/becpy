@@ -28,6 +28,12 @@ def critical_temperature(N, omega_ho):
     return Tc
 
 
+def N_from_critical_temperature(Tc, omega_ho):
+    # ideal gas in HT
+    N = z3 * (kB * Tc / hbar / omega_ho)**3
+    return N
+
+
 def tc_shift_interactions(N, omega_ho):
     # [2] Eq 18
     a_ho = np.sqrt(hbar / mass / omega_ho)
@@ -42,22 +48,25 @@ def tc_shift_finite_size(N, AR):
     return shift
 
 
-def _bec_fraction(t, eta):
+def _bec_fraction(t, eta, clip=True):
     # [1] Eq. 13.40
     f0 = np.maximum(1 - t**3, 0)
     bec_fraction = f0 - z2 / z3 * eta * t**2 * f0**(2. / 5)
-    return bec_fraction.clip(0)
+    if clip:
+        bec_fraction = bec_fraction.clip(0)
+    return bec_fraction
 
 
-def bec_fraction(N, T, omega_ho):
+def bec_fraction(N, T, omega_ho, clip=False):
     _eta = eta(N, omega_ho)
     t = T / critical_temperature(N, omega_ho)
-    return _bec_fraction(t, _eta)
+    return _bec_fraction(t, _eta, clip=clip)
 
 
 def __mu_t(t, eta):
+    # [1] Eq. 13.37
     if t <= 1:
-        return eta * (1 - t**3)**(2/5)
+        return eta * (1 - t**3)**(2 / 5)
     else:
         # z = brentq(lambda z: g3(z) - z3 / t**3, 0, 1)
         z = g3_inv(z3 / t**3)

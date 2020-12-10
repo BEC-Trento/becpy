@@ -12,7 +12,7 @@ import numpy as np
 def average_repeat(x, y):
     xu = np.unique(x)
     yu = np.empty(xu.shape, dtype=y.dtype)
-    yerr = np.empty_like(xu)
+    yerr = np.empty(xu.shape, dtype=y.dtype)
     for j, v in enumerate(xu):
         ix = (x == v)
         yu[j] = y[ix].mean()

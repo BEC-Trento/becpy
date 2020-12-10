@@ -1,6 +1,9 @@
 # my testing folder
 _old/
 
+# data files
+*.npz
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
