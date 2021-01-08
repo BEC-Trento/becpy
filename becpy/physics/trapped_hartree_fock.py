@@ -17,6 +17,7 @@ from .functions import g3_inv
 
 
 def eta(N, omega_ho):
+    # [1] Eq. 13.2
     a_ho = np.sqrt(hbar / mass / omega_ho)
     eta = 0.5 * z3**(1 / 3) * (15 * N**(1 / 6) * scattering_length / a_ho)**(2 / 5)
     return eta
